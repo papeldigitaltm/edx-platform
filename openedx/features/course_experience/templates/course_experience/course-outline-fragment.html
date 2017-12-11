@@ -35,9 +35,32 @@ from openedx.core.djangolib.markup import HTML, Text
                                 >
                                     <div class="subsection-text">
                                         ## Subsection title
-                                        <span class="subsection-title">${ subsection['display_name'] }</span>
-
+                                        <span class="subsection-title">
+                                            % if subsection['id'] in milestones:
+                                                % if milestones[subsection['id']]['completed_prereqs']:
+                                                    <span class="menu-icon icon fa fa-unlock"
+                                                        aria-hidden="true">
+                                                    </span>
+                                                % else:
+                                                    <span class="menu-icon icon fa fa-lock" 
+                                                    aria-hidden="true">
+                                                    </span>
+                                                % endif
+                                            % endif
+                                            <span class="subsection-title-name">
+                                                ${ subsection['display_name'] }
+                                            </span>
+                                            % if subsection['id'] in milestones: 
+                                                % if milestones[subsection['id']]['completed_prereqs']:
+                                                    <span class="sr">&nbsp;${_("Unlocked")}</span>
+                                                % else:
+                                                    <span class="details">
+                                                        ${ _("(Prerequisite required)") }
+                                                    </span>
+                                                % endif 
+                                            % endif
                                         <div class="details">
+
                                             ## There are behavior differences between rendering of subsections which have
                                             ## exams (timed, graded, etc) and those that do not.
                                             ##
@@ -91,11 +114,12 @@ from openedx.core.djangolib.markup import HTML, Text
                                                             class="menu-icon icon fa fa-pencil-square-o"
                                                             aria-hidden="true"
                                                         ></span>
-                                                        <span class="sr">${_("This content is graded")}</span>
+                                                        <span class="sr">&nbsp;${_("This content is graded")}</span>
                                                     % endif
                                                 % endif
                                             </span>
                                             % endif
+
                                         </div> <!-- /details -->
                                     </div> <!-- /subsection-text -->
                                     <div class="subsection-actions">

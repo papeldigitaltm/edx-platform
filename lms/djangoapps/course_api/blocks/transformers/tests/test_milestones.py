@@ -137,12 +137,12 @@ class MilestonesTransformerTestCase(CourseStructureTestCase, MilestonesTestCaseM
         (
             'H',
             'A',
-            ('course', 'A', 'B', 'C',)
+            ('course', 'A', 'B', 'C', 'H', 'I')
         ),
         (
             'H',
             'ProctoredExam',
-            ('course', 'A', 'B', 'C'),
+            ('course', 'A', 'B', 'C', 'H', 'I'),
         ),
     )
     @ddt.unpack
@@ -160,7 +160,7 @@ class MilestonesTransformerTestCase(CourseStructureTestCase, MilestonesTestCaseM
         self.course.enable_subsection_gating = True
         self.setup_gated_section(self.blocks[gated_block_ref], self.blocks[gating_block_ref])
 
-        with self.assertNumQueries(8):
+        with self.assertNumQueries(6):
             self.get_blocks_and_check_against_expected(self.user, expected_blocks_before_completion)
 
         # clear the request cache to simulate a new request
@@ -174,7 +174,7 @@ class MilestonesTransformerTestCase(CourseStructureTestCase, MilestonesTestCaseM
                 self.user,
             )
 
-        with self.assertNumQueries(8):
+        with self.assertNumQueries(6):
             self.get_blocks_and_check_against_expected(self.user, self.ALL_BLOCKS_EXCEPT_SPECIAL)
 
     def test_staff_access(self):
@@ -195,7 +195,7 @@ class MilestonesTransformerTestCase(CourseStructureTestCase, MilestonesTestCaseM
         self.course.enable_subsection_gating = True
         self.setup_gated_section(self.blocks['H'], self.blocks['A'])
         expected_blocks = (
-            'course', 'A', 'B', 'C', 'ProctoredExam', 'D', 'E', 'PracticeExam', 'F', 'G', 'TimedExam', 'J', 'K'
+            'course', 'A', 'B', 'C', 'ProctoredExam', 'D', 'E', 'PracticeExam', 'F', 'G', 'TimedExam', 'J', 'K', 'H', 'I'
         )
         self.get_blocks_and_check_against_expected(self.user, expected_blocks)
         # clear the request cache to simulate a new request

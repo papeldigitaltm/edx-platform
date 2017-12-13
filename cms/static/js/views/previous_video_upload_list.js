@@ -16,7 +16,8 @@ define(
                         defaultVideoImageURL: options.defaultVideoImageURL,
                         videoHandlerUrl: options.videoHandlerUrl,
                         videoImageSettings: options.videoImageSettings,
-                        model: model
+                        model: model,
+                        transcriptAvailableLanguages: options.transcriptAvailableLanguages
                     });
                 });
             },

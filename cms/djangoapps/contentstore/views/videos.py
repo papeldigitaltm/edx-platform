@@ -30,7 +30,8 @@ from edxval.api import (
     remove_transcript_preferences,
     remove_video_for_course,
     update_video_image,
-    update_video_status
+    update_video_status,
+    get_available_transcript_languages
 )
 from opaque_keys.edx.keys import CourseKey
 
@@ -532,6 +533,12 @@ def _get_videos(course):
     for video in videos:
         video["status"] = convert_video_status(video)
 
+        transcripts = {}
+        for lang_code in get_available_transcript_languages([video['edx_video_id']]):
+            transcripts.update({lang_code: get_all_transcript_languages()[lang_code]})
+
+        video['transcripts'] = transcripts
+
     return videos
 
 
@@ -547,7 +554,7 @@ def _get_index_videos(course):
     Returns the information about each video upload required for the video list
     """
     course_id = unicode(course.id)
-    attrs = ['edx_video_id', 'client_video_id', 'created', 'duration', 'status', 'courses']
+    attrs = ['edx_video_id', 'client_video_id', 'created', 'duration', 'status', 'courses', 'transcripts']
 
     def _get_values(video):
         """
@@ -567,6 +574,8 @@ def _get_index_videos(course):
         _get_values(video) for video in _get_videos(course)
     ]
 
+def get_all_transcript_languages():
+    return get_3rd_party_transcription_plans()[TranscriptProvider.THREE_PLAY_MEDIA]['languages']
 
 def videos_index_html(course):
     """
@@ -594,7 +603,8 @@ def videos_index_html(course):
         'is_video_transcript_enabled': is_video_transcript_enabled,
         'video_transcript_settings': None,
         'active_transcript_preferences': None,
-        'transcript_credentials': None
+        'transcript_credentials': None,
+        'transcript_available_languages': get_all_transcript_languages()
     }
 
     if is_video_transcript_enabled:

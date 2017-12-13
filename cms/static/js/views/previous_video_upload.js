@@ -1,10 +1,10 @@
 define(
     ['underscore', 'gettext', 'js/utils/date_utils', 'js/views/baseview', 'common/js/components/views/feedback_prompt',
-        'common/js/components/views/feedback_notification', 'js/views/video_thumbnail',
+        'common/js/components/views/feedback_notification', 'js/views/video_thumbnail', 'js/views/video_transcripts',
         'common/js/components/utils/view_utils', 'edx-ui-toolkit/js/utils/html-utils',
         'text!templates/previous-video-upload.underscore'],
-    function(_, gettext, DateUtils, BaseView, PromptView, NotificationView, VideoThumbnailView, ViewUtils, HtmlUtils,
-             previousVideoUploadTemplate) {
+    function(_, gettext, DateUtils, BaseView, PromptView, NotificationView, VideoThumbnailView, VideoTranscriptsView,
+            ViewUtils, HtmlUtils, previousVideoUploadTemplate) {
         'use strict';
 
         var PreviousVideoUploadView = BaseView.extend({
@@ -29,6 +29,12 @@ define(
                         videoImageSettings: options.videoImageSettings
                     });
                 }
+                this.videoTranscriptsView = new VideoTranscriptsView({
+                    transcripts: this.model.get('transcripts'),
+                    edxVideoID: this.model.get('edx_video_id'),
+                    clientVideoID: this.model.get('client_video_id'),
+                    transcriptAvailableLanguages: this.options.transcriptAvailableLanguages
+                });
             },
 
             render: function() {
@@ -47,6 +53,7 @@ define(
                 if (this.videoImageUploadEnabled) {
                     this.videoThumbnailView.setElement(this.$('.thumbnail-col')).render();
                 }
+                this.videoTranscriptsView.setElement(this.$('.transcripts-col')).render();
                 return this;
             },
 

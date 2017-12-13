@@ -1,0 +1,38 @@
+<% if (_.size(transcripts)) { %>
+    <button class="button-link toggle-show-transcripts-button">
+        <strong>
+        <span class="icon fa fa-caret-right toggle-show-transcripts-icon" aria-hidden="true"></span>
+        <span class="toggle-show-transcripts-button-text">
+            <%- StringUtils.interpolate(gettext('Show transcripts ({totalTranscripts})'), {totalTranscripts: _.size(transcripts)})%>
+        </span>
+        </strong>
+    </button>
+<% } else { %>
+    <span><%- gettext('No transcript available yet.') %></span>
+<% }%>
+<div class='show-video-transcripts-wrapper hidden'>
+<% _.each(transcripts, function(transcriptLanguageText, transcriptLanguageCode){ %>
+    <div class='show-video-transcript-content'>
+        <strong><%- StringUtils.interpolate(gettext('{transcriptClientTitle}_{transcriptLanguageCode}.{fileExtension}'), {transcriptClientTitle: transcriptClientTitle, transcriptLanguageCode: transcriptLanguageCode, fileExtension: transcriptDownloadFileFormat}) %></strong>
+        <select id='transcript-language-<%- transcriptLanguageCode %>' class='transcript-language-menu'>
+            <option value=''>Select Language</option>
+            <% _.each(transcriptAvailableLanguages, function(languageText, languageCode){ %>
+                <option value='<%- languageCode %>' <%- transcriptLanguageCode === languageCode ? 'selected': '' %>><%- languageText %></option>
+            <% }) %>
+        </select>
+        <div class='transcript-actions'>
+            <button class="button-link download-transcript-button" data-edx-video-id="<%- edxVideoID %>" data-language-code="<%- transcriptLanguageCode %>">
+                <%- gettext('Download') %>
+            </button>
+            <span class='transcript-actions-separator'> | </span>
+            <button class="button-link upload-transcript-button" data-edx-video-id="<%- edxVideoID %>" data-language-code="<%- transcriptLanguageCode %>">
+                <%- gettext('Re-upload') %>
+            </button>
+            <span class='transcript-actions-separator'> | </span>
+            <button class="button-link delete-transcript-button" data-edx-video-id="<%- edxVideoID %>" data-language-code="<%- transcriptLanguageCode %>">
+                <%- gettext('Delete') %>
+            </button>
+        </div>
+    </div>
+<% }) %>
+</div>

@@ -388,6 +388,26 @@ def _third_party_auth_context(request, redirect_to, tpa_hint=None):
                 context['errorMessage'] = _(unicode(msg))  # pylint: disable=translation-of-non-string
                 break
 
+        if enterprise_customer and context['errorMessage']:
+            context['errorMessage'] = _(
+                u'We are sorry, you are not authorized to access {platform_name} via this channel. '
+                u'Please contact your {enterprise} administrator in order to access {platform_name} '
+                u'or contact {link_start}edX Support{link_end}.{line_break}'
+                u'{line_break}'
+                u'Error Details:{line_break}{error_message}'.format(
+                    platform_name=configuration_helpers.get_value('PLATFORM_NAME', settings.PLATFORM_NAME),
+                    enterprise=enterprise_customer['name'],
+                    error_message=context['errorMessage'],
+                    link_start='<a href="{edx_support_url}">'.format(
+                        edx_support_url=configuration_helpers.get_value(
+                            'SUPPORT_SITE_LINK', settings.SUPPORT_SITE_LINK
+                        )
+                    ),
+                    link_end='</a>',
+                    line_break='<br/>'
+                )
+            )
+
     return context
 
 

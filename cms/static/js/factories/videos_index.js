@@ -53,6 +53,7 @@ define([
                                 collection: updatedCollection,
                                 encodingsDownloadUrl: encodingsDownloadUrl,
                                 videoImageSettings: videoImageSettings,
+                                videoTranscriptSettings: videoTranscriptSettings,
                                 transcriptAvailableLanguages: transcriptAvailableLanguages,
                                 videoSupportedFileFormats: videoSupportedFileFormats,
                                 isVideoTranscriptEnabled: isVideoTranscriptEnabled
@@ -68,6 +69,7 @@ define([
                 collection: new Backbone.Collection(previousUploads),
                 encodingsDownloadUrl: encodingsDownloadUrl,
                 videoImageSettings: videoImageSettings,
+                videoTranscriptSettings: videoTranscriptSettings,
                 transcriptAvailableLanguages: transcriptAvailableLanguages,
                 videoSupportedFileFormats: videoSupportedFileFormats,
                 isVideoTranscriptEnabled: isVideoTranscriptEnabled

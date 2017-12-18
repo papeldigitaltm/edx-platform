@@ -1,12 +1,15 @@
 """
 Views related to the transcript preferences feature
 """
+import os
+
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponse
 from django.utils.translation import ugettext as _
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from edxval.api import (
     get_3rd_party_transcription_plans,
+    get_video_transcript_data,
     update_transcript_credentials_state_for_org,
 )
 from opaque_keys.edx.keys import CourseKey
@@ -16,8 +19,9 @@ from openedx.core.djangoapps.video_pipeline.api import update_3rd_party_transcri
 from util.json_request import JsonResponse, expect_json
 
 from contentstore.views.videos import TranscriptProvider
+from xmodule.video_module.transcripts_utils import Transcript
 
-__all__ = ['transcript_credentials_handler']
+__all__ = ['transcript_credentials_handler', 'transcript_download_handler']
 
 
 class TranscriptionProviderErrorType:
@@ -106,5 +110,48 @@ def transcript_credentials_handler(request, course_key_string):
                 error_message = _('The information you entered is incorrect.')
 
             response = JsonResponse({'error': error_message}, status=400)
+
+    return response
+
+
+@expect_json
+@login_required
+@require_GET
+def transcript_download_handler(request, course_key_string):
+    """
+    JSON view handler to download a transcript.
+
+    Arguments:
+        request: WSGI request object
+        course_key_string: course key
+        filename: Name of the to be created transcript file
+
+    Returns:
+        - A 200 response with SRT transcript file attached.
+        - A 400 if there is a validation error.
+        - A 404 if there is no such transcript or feature flag is disabled.
+    """
+    course_key = CourseKey.from_string(course_key_string)
+    if not VideoTranscriptEnabledFlag.feature_enabled(course_key):
+        return HttpResponseNotFound()
+
+    edx_video_id = request.GET.get('edx_video_id')
+    if not edx_video_id:
+        return JsonResponse({'error': 'edx_video_id is required.'}, status=400)
+
+    language_code = request.GET.get('language_code')
+    if not language_code:
+        return JsonResponse({'error': 'language code is required.'}, status=400)
+
+    transcript = get_video_transcript_data(video_ids=[edx_video_id], language_code=language_code)
+    if transcript:
+        basename, __ = os.path.splitext(transcript['file_name'])
+        transcript_filename = '{base_name}.srt'.format(base_name=basename.encode('utf8'))
+        transcript_content = Transcript.convert(transcript['content'], input_format='sjson', output_format='srt')
+        # Construct an HTTP response
+        response = HttpResponse(transcript_content, content_type=Transcript.mime_types['srt'])
+        response['Content-Disposition'] = 'attachment; filename="{filename}"'.format(filename=transcript_filename)
+    else:
+        response = HttpResponseNotFound()
 
     return response

@@ -645,7 +645,11 @@ def videos_index_html(course):
                 'transcript_credentials_handler',
                 unicode(course.id)
             ),
-            'transcription_plans': get_3rd_party_transcription_plans(),
+            'transcript_download_handler_url': reverse_course_url(
+                'transcript_download_handler',
+                unicode(course.id)
+            ),
+            'transcription_plans': get_3rd_party_transcription_plans()
         }
         context['active_transcript_preferences'] = get_transcript_preferences(unicode(course.id))
         # Cached state for transcript providers' credentials (org-specific)

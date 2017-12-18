@@ -20,6 +20,7 @@ define(
                 this.clientVideoID = options.clientVideoID;
                 this.transcriptAvailableLanguages = options.transcriptAvailableLanguages;
                 this.videoSupportedFileFormats = options.videoSupportedFileFormats;
+                this.videoTranscriptSettings = options.videoTranscriptSettings;
                 this.template = HtmlUtils.template(videoTranscriptsTemplate);
             },
 
@@ -89,6 +90,7 @@ define(
                         transcriptAvailableLanguages: this.sortByValue(this.transcriptAvailableLanguages),
                         edxVideoID: this.edxVideoID,
                         transcriptClientTitle: this.getTranscriptClientTitle(),
+                        transcriptDownloadHandlerUrl: this.videoTranscriptSettings.transcript_download_handler_url,
                         transcriptDownloadFileFormat: TRANSCRIPT_DOWNLOAD_FILE_FORMAT
                     })
                 );

@@ -16,8 +16,8 @@
         <strong><%- StringUtils.interpolate(gettext('{transcriptClientTitle}_{transcriptLanguageCode}.{fileExtension}'), {transcriptClientTitle: transcriptClientTitle, transcriptLanguageCode: transcriptLanguageCode, fileExtension: transcriptDownloadFileFormat}) %></strong>
         <select id='transcript-language-<%- transcriptLanguageCode %>' class='transcript-language-menu'>
             <option value=''>Select Language</option>
-            <% _.each(transcriptAvailableLanguages, function(languageText, languageCode){ %>
-                <option value='<%- languageCode %>' <%- transcriptLanguageCode === languageCode ? 'selected': '' %>><%- languageText %></option>
+            <% _.each(transcriptAvailableLanguages, function(availableLanguage){ %>
+                <option value='<%- availableLanguage[1] %>' <%- transcriptLanguageCode === availableLanguage[1] ? 'selected': '' %>><%- availableLanguage[0] %></option>
             <% }) %>
         </select>
         <div class='transcript-actions'>

@@ -19,14 +19,42 @@ define(
                 this.edxVideoID = options.edxVideoID;
                 this.clientVideoID = options.clientVideoID;
                 this.transcriptAvailableLanguages = options.transcriptAvailableLanguages;
+                this.videoSupportedFileFormats = options.videoSupportedFileFormats;
                 this.template = HtmlUtils.template(videoTranscriptsTemplate);
             },
 
-            getTranscriptClientTitle: function() {
-                // TODO: Use supported video file types.
-                return this.clientVideoID.substring(0, 20).replace('.mp4', '');
+            /*
+            Sorts object by value and returns a sorted array.
+            */
+            sortByValue: function(itemObject) {
+                var sortedArray = [];
+
+                _.each(itemObject, function(value, key) {
+                    // Push each JSON Object entry in array by [value, key]
+                    sortedArray.push([value, key]);
+                });
+
+                return sortedArray.sort();
             },
 
+            /*
+            Returns transcript title.
+            */
+            getTranscriptClientTitle: function() {
+                // Use a fixed length tranascript name.
+                var clientTitle = this.clientVideoID.substring(0, 20);
+
+                // Remove video file extension for transcript title.
+                _.each(this.videoSupportedFileFormats, function(videoFormat) {
+                    clientTitle.replace(videoFormat, '');
+                });
+
+                return clientTitle;
+            },
+
+            /*
+            Toggles Show/Hide transcript button and transcripts container.
+            */
             toggleShowTranscripts: function() {
                 var $transcriptsWrapperEl = this.$el.find('.show-video-transcripts-wrapper');
 
@@ -53,15 +81,17 @@ define(
                     this.$el.find('.toggle-show-transcripts-icon').removeClass('fa-caret-right');
                     this.$el.find('.toggle-show-transcripts-icon').addClass('fa-caret-down');
                 }
-
             },
 
+            /*
+            Renders transcripts view.
+            */
             render: function() {
                 HtmlUtils.setHtml(
                     this.$el,
                     this.template({
                         transcripts: this.transcripts,
-                        transcriptAvailableLanguages: this.transcriptAvailableLanguages,
+                        transcriptAvailableLanguages: this.sortByValue(this.transcriptAvailableLanguages),
                         edxVideoID: this.edxVideoID,
                         // Slice last 4 letters so that video filetype is not attached
                         // eg. eg. Harry-Potter.mp4 would give us eg. Harry-Potter

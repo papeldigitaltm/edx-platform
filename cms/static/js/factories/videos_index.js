@@ -53,7 +53,8 @@ define([
                                 collection: updatedCollection,
                                 encodingsDownloadUrl: encodingsDownloadUrl,
                                 videoImageSettings: videoImageSettings,
-                                transcriptAvailableLanguages: transcriptAvailableLanguages
+                                transcriptAvailableLanguages: transcriptAvailableLanguages,
+                                videoSupportedFileFormats: videoSupportedFileFormats
                             });
                         $contentWrapper.find('.wrapper-assets').replaceWith(updatedView.render().$el);
                     });
@@ -66,7 +67,8 @@ define([
                 collection: new Backbone.Collection(previousUploads),
                 encodingsDownloadUrl: encodingsDownloadUrl,
                 videoImageSettings: videoImageSettings,
-                transcriptAvailableLanguages: transcriptAvailableLanguages
+                transcriptAvailableLanguages: transcriptAvailableLanguages,
+                videoSupportedFileFormats: videoSupportedFileFormats
             });
         $contentWrapper.append(activeView.render().$el);
         $contentWrapper.append(previousView.render().$el);

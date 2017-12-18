@@ -33,7 +33,8 @@ define(
                     transcripts: this.model.get('transcripts'),
                     edxVideoID: this.model.get('edx_video_id'),
                     clientVideoID: this.model.get('client_video_id'),
-                    transcriptAvailableLanguages: this.options.transcriptAvailableLanguages
+                    transcriptAvailableLanguages: options.transcriptAvailableLanguages,
+                    videoSupportedFileFormats: options.videoSupportedFileFormats
                 });
             },
 

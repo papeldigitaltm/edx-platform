@@ -14,7 +14,7 @@ from entitlements.api.v1.filters import CourseEntitlementFilter
 from entitlements.api.v1.permissions import IsAdminOrAuthenticatedReadOnly
 from entitlements.api.v1.serializers import CourseEntitlementSerializer
 from entitlements.models import CourseEntitlement
-from entitlements.signals import REFUND_ENTITLEMENT
+from lms.djangoapps.commerce.utils import refund_entitlement
 from openedx.core.djangoapps.catalog.utils import get_course_runs_for_course
 from openedx.core.djangoapps.cors_csrf.authentication import SessionAuthenticationCrossDomainCsrf
 from student.models import CourseEnrollment
@@ -316,30 +316,43 @@ class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
             )
 
         if is_refund and entitlement.is_entitlement_refundable():
-            with transaction.atomic():
-                # Revoke and refund the entitlement
-                if entitlement.enrollment_course_run is not None:
-                    self._unenroll_entitlement(
-                        entitlement=entitlement,
-                        course_run_key=entitlement.enrollment_course_run.course_id,
-                        user=request.user
+            # Revoke the Course Entitlement and issue Refund
+            log.info(
+                'Entitlement Refund requested for Course Entitlement[%s]',
+                str(entitlement.uuid)
+            )
+            refund_status = refund_entitlement(course_entitlement=entitlement)
+
+            if refund_status:
+                with transaction.atomic():
+                    entitlement.expired_at_datetime = timezone.now()
+                    entitlement.save()
+
+                    log.info(
+                        'Set expired_at to [%s] for course entitlement [%s]',
+                        entitlement.expired_at,
+                        entitlement.uuid
                     )
 
-                # Revoke the Course Entitlement and issue Refund
+                    # Revoke and refund the entitlement
+                    if entitlement.enrollment_course_run is not None:
+                        self._unenroll_entitlement(
+                            entitlement=entitlement,
+                            course_run_key=entitlement.enrollment_course_run.course_id,
+                            user=request.user
+                        )
+            else:
+                # This state is achieved in most cases by a failure in the ecommerce service to process the refund.
                 log.info(
-                    'Entitlement Refund requested for Course Entitlement[%s]',
+                    'Entitlement Refund failed for Course Entitlement [%s], alert User',
                     str(entitlement.uuid)
                 )
+                return Response(
+                    status=status.HTTP_409_CONFLICT,
+                    data={
+                        'message': 'Entitlement refund failed due to refund process failure or conflict'
+                    })
 
-                REFUND_ENTITLEMENT.send(sender=None, course_entitlement=entitlement)
-                entitlement.expired_at_datetime = timezone.now()
-                entitlement.save()
-
-                log.info(
-                    'Set expired_at to [%s] for course entitlement [%s]',
-                    entitlement.expired_at,
-                    entitlement.uuid
-                )
         elif not is_refund:
             if entitlement.enrollment_course_run is not None:
                 self._unenroll_entitlement(

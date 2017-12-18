@@ -26,7 +26,7 @@ from student.tests.factories import CourseEnrollmentFactory, UserFactory
 from . import JSON
 from .mocks import mock_create_refund, mock_process_refund
 from ..models import CommerceConfiguration
-from ..signals import create_zendesk_ticket, generate_refund_notification_body, send_refund_notification
+from ..utils import create_zendesk_ticket, _generate_refund_notification_body, _send_refund_notification
 
 ZENDESK_URL = 'http://zendesk.example.com/'
 ZENDESK_USER = 'test@example.com'
@@ -143,7 +143,7 @@ class TestRefundSignal(TestCase):
             self.send_signal()
             self.assertTrue(mock_log_exception.called)
 
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     def test_notification_when_approval_fails(self, mock_send_notification):
         """
         Ensure the notification function is triggered when refunds are initiated, and cannot be automatically approved.
@@ -158,7 +158,7 @@ class TestRefundSignal(TestCase):
                     self.assertTrue(mock_send_notification.called)
                     mock_send_notification.assert_called_with(self.course_enrollment, [failed_refund_id])
 
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     def test_notification_if_automatic_approval_disabled(self, mock_send_notification):
         """
         Ensure the notification is always sent if the automatic approval functionality is disabled.
@@ -172,7 +172,7 @@ class TestRefundSignal(TestCase):
             self.assertTrue(mock_send_notification.called)
             mock_send_notification.assert_called_with(self.course_enrollment, [refund_id])
 
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     def test_no_notification_after_approval(self, mock_send_notification):
         """
         Ensure the notification function is triggered when refunds are initiated, and cannot be automatically approved.
@@ -187,7 +187,7 @@ class TestRefundSignal(TestCase):
                 last_request = httpretty.last_request()
                 self.assertDictEqual(json.loads(last_request.body), {'action': 'approve_payment_only'})
 
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     def test_notification_no_refund(self, mock_send_notification):
         """
         Ensure the notification function is NOT triggered when no refunds are
@@ -197,7 +197,7 @@ class TestRefundSignal(TestCase):
             self.send_signal()
             self.assertFalse(mock_send_notification.called)
 
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     @ddt.data(
         CourseMode.HONOR,
         CourseMode.PROFESSIONAL,
@@ -218,8 +218,8 @@ class TestRefundSignal(TestCase):
             self.send_signal()
             self.assertFalse(mock_send_notification.called)
 
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification', side_effect=Exception("Splat!"))
-    @mock.patch('lms.djangoapps.commerce.signals.log.warning')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification', side_effect=Exception("Splat!"))
+    @mock.patch('lms.djangoapps.commerce.utils.log.warning')
     def test_notification_error(self, mock_log_warning, mock_send_notification):
         """
         Ensure an error occuring during notification does not break program
@@ -237,10 +237,10 @@ class TestRefundSignal(TestCase):
         context of themed site.
         """
         with self.assertRaises(NotImplementedError):
-            send_refund_notification(self.course_enrollment, [1, 2, 3])
+            _send_refund_notification(self.course_enrollment, [1, 2, 3])
 
     @ddt.data('email@example.com', 'üñîcode.email@example.com')
-    @mock.patch('lms.djangoapps.commerce.signals.create_zendesk_ticket')
+    @mock.patch('lms.djangoapps.commerce.utils.create_zendesk_ticket')
     def test_send_refund_notification(self, student_email, mock_zendesk):
         """ Verify the support team is notified of the refund request. """
         refund_ids = [1, 2, 3]
@@ -249,8 +249,8 @@ class TestRefundSignal(TestCase):
         # generate_refund_notification_body can handle formatting a unicode
         # message
         self.student.email = student_email
-        send_refund_notification(self.course_enrollment, refund_ids)
-        body = generate_refund_notification_body(self.student, refund_ids)
+        _send_refund_notification(self.course_enrollment, refund_ids)
+        body = _generate_refund_notification_body(self.student, refund_ids)
         mock_zendesk.assert_called_with(
             self.student.profile.name,
             self.student.email,
@@ -417,7 +417,7 @@ class TestRevokeEntitlementSignal(TestCase):
         self.assertFalse(mock_refund_entitlement.called)
 
     @mock.patch('lms.djangoapps.commerce.signals.get_request_user',)
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     def test_notification_when_approval_fails(self, mock_send_notification, mock_get_user):
         """
         Ensure the notification function is triggered when refunds are initiated, and cannot be automatically approved.
@@ -434,7 +434,7 @@ class TestRevokeEntitlementSignal(TestCase):
                     mock_send_notification.assert_called_with(self.course_entitlement, [failed_refund_id])
 
     @mock.patch('lms.djangoapps.commerce.signals.get_request_user')
-    @mock.patch('lms.djangoapps.commerce.signals.send_refund_notification')
+    @mock.patch('lms.djangoapps.commerce.utils._send_refund_notification')
     def test_notification_if_automatic_approval_disabled(self, mock_send_notification, mock_get_user):
         """
         Ensure the notification is always sent if the automatic approval functionality is disabled.
@@ -456,4 +456,4 @@ class TestRevokeEntitlementSignal(TestCase):
         context of themed site.
         """
         with self.assertRaises(NotImplementedError):
-            send_refund_notification(self.course_entitlement, [1, 2, 3])
+            _send_refund_notification(self.course_entitlement, [1, 2, 3])

@@ -57,6 +57,7 @@ class CourseGradeFactory(object):
             course_structure=None,
             course_key=None,
             force_update_subsections=False,
+            enrollment_track_changed=False
     ):
         """
         Computes, updates, and returns the CourseGrade for the given
@@ -64,9 +65,19 @@ class CourseGradeFactory(object):
 
         At least one of course, collected_block_structure, course_structure,
         or course_key should be provided.
+
+        If the learner's enrollment track has changed, and the
+        subsection *only* contains track-specific problems that the
+        user has attempted, should force a re-grade for that section.
+        See EDUCATOR-1280.
         """
         course_data = CourseData(user, course, collected_block_structure, course_structure, course_key)
-        return self._update(user, course_data, force_update_subsections=force_update_subsections)
+        return self._update(
+            user,
+            course_data,
+            force_update_subsections=force_update_subsections,
+            persist_after_track_change=enrollment_track_changed
+        )
 
     def iter(
             self,
@@ -152,7 +163,7 @@ class CourseGradeFactory(object):
         )
 
     @staticmethod
-    def _update(user, course_data, force_update_subsections=False):
+    def _update(user, course_data, force_update_subsections=False, persist_after_track_change=False):
         """
         Computes, saves, and returns a CourseGrade object for the
         given user and course.
@@ -164,10 +175,15 @@ class CourseGradeFactory(object):
         if should_persist and force_update_subsections:
             prefetch(user, course_data.course_key)
 
-        course_grade = CourseGrade(user, course_data, force_update_subsections=force_update_subsections)
+        course_grade = CourseGrade(
+            user,
+            course_data,
+            force_update_subsections=force_update_subsections,
+            persist_after_track_change=persist_after_track_change
+        )
         course_grade = course_grade.update()
 
-        should_persist = should_persist and course_grade.attempted
+        should_persist = should_persist and (course_grade.attempted or persist_after_track_change)
         if should_persist:
             course_grade._subsection_grade_factory.bulk_create_unsaved()
             PersistentCourseGrade.update_or_create(

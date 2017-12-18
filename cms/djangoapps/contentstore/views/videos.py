@@ -527,17 +527,19 @@ def _get_videos(course):
     """
     Retrieves the list of videos from VAL corresponding to this course.
     """
+    is_video_transcript_enabled = VideoTranscriptEnabledFlag.feature_enabled(course.id)
     videos = list(get_videos_for_course(unicode(course.id), VideoSortField.created, SortDirection.desc))
 
     # convert VAL's status to studio's Video Upload feature status.
     for video in videos:
         video["status"] = convert_video_status(video)
 
-        transcripts = {}
-        for lang_code in get_available_transcript_languages([video['edx_video_id']]):
-            transcripts.update({lang_code: get_all_transcript_languages()[lang_code]})
+        if is_video_transcript_enabled:
+            transcripts = {}
+            for lang_code in get_available_transcript_languages([video['edx_video_id']]):
+                transcripts.update({lang_code: get_all_transcript_languages(is_video_transcript_enabled)[lang_code]})
 
-        video['transcripts'] = transcripts
+            video['transcripts'] = transcripts
 
     return videos
 
@@ -554,7 +556,10 @@ def _get_index_videos(course):
     Returns the information about each video upload required for the video list
     """
     course_id = unicode(course.id)
-    attrs = ['edx_video_id', 'client_video_id', 'created', 'duration', 'status', 'courses', 'transcripts']
+    attrs = ['edx_video_id', 'client_video_id', 'created', 'duration', 'status', 'courses']
+
+    if VideoTranscriptEnabledFlag.feature_enabled(course.id):
+        attrs += ['transcripts']
 
     def _get_values(video):
         """
@@ -574,18 +579,20 @@ def _get_index_videos(course):
         _get_values(video) for video in _get_videos(course)
     ]
 
-def get_all_transcript_languages():
+def get_all_transcript_languages(is_video_transcript_enabled=False):
     """
     Returns all possible languages for transcript.
     """
-    transcription_plans = get_3rd_party_transcription_plans()
-    cielo_fidelity = transcription_plans[TranscriptProvider.CIELO24]['fidelity']
+    third_party_transcription_languages = {}
+    if is_video_transcript_enabled:
+        transcription_plans = get_3rd_party_transcription_plans()
+        cielo_fidelity = transcription_plans[TranscriptProvider.CIELO24]['fidelity']
 
-    # Get third party transcription languages.
-    third_party_transcription_languages = transcription_plans[TranscriptProvider.THREE_PLAY_MEDIA]['languages']
-    third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['MECHANICAL']['languages'])
-    third_party_transcription_languages = dict(third_party_transcription_languages , **cielo_fidelity['PREMIUM']['languages'])
-    third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['PROFESSIONAL']['languages'])
+        # Get third party transcription languages.
+        third_party_transcription_languages = transcription_plans[TranscriptProvider.THREE_PLAY_MEDIA]['languages']
+        third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['MECHANICAL']['languages'])
+        third_party_transcription_languages = dict(third_party_transcription_languages , **cielo_fidelity['PREMIUM']['languages'])
+        third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['PROFESSIONAL']['languages'])
 
     # Get all settings languages dict.
     all_languages = {}
@@ -622,7 +629,7 @@ def videos_index_html(course):
         'video_transcript_settings': None,
         'active_transcript_preferences': None,
         'transcript_credentials': None,
-        'transcript_available_languages': get_all_transcript_languages()
+        'transcript_available_languages': get_all_transcript_languages(is_video_transcript_enabled)
     }
 
     if is_video_transcript_enabled:

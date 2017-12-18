@@ -20,6 +20,7 @@ define(
                 this.template = HtmlUtils.template(previousVideoUploadTemplate);
                 this.videoHandlerUrl = options.videoHandlerUrl;
                 this.videoImageUploadEnabled = options.videoImageSettings.video_image_upload_enabled;
+                this.isVideoTranscriptEnabled = options.isVideoTranscriptEnabled;
 
                 if (this.videoImageUploadEnabled) {
                     this.videoThumbnailView = new VideoThumbnailView({
@@ -29,18 +30,21 @@ define(
                         videoImageSettings: options.videoImageSettings
                     });
                 }
-                this.videoTranscriptsView = new VideoTranscriptsView({
-                    transcripts: this.model.get('transcripts'),
-                    edxVideoID: this.model.get('edx_video_id'),
-                    clientVideoID: this.model.get('client_video_id'),
-                    transcriptAvailableLanguages: options.transcriptAvailableLanguages,
-                    videoSupportedFileFormats: options.videoSupportedFileFormats
-                });
+                if (this.isVideoTranscriptEnabled) {
+                    this.videoTranscriptsView = new VideoTranscriptsView({
+                        transcripts: this.model.get('transcripts'),
+                        edxVideoID: this.model.get('edx_video_id'),
+                        clientVideoID: this.model.get('client_video_id'),
+                        transcriptAvailableLanguages: options.transcriptAvailableLanguages,
+                        videoSupportedFileFormats: options.videoSupportedFileFormats
+                    });
+                }
             },
 
             render: function() {
                 var renderedAttributes = {
                     videoImageUploadEnabled: this.videoImageUploadEnabled,
+                    isVideoTranscriptEnabled: this.isVideoTranscriptEnabled,
                     created: DateUtils.renderDate(this.model.get('created')),
                     status: this.model.get('status')
                 };
@@ -54,7 +58,9 @@ define(
                 if (this.videoImageUploadEnabled) {
                     this.videoThumbnailView.setElement(this.$('.thumbnail-col')).render();
                 }
-                this.videoTranscriptsView.setElement(this.$('.transcripts-col')).render();
+                if (this.isVideoTranscriptEnabled) {
+                    this.videoTranscriptsView.setElement(this.$('.transcripts-col')).render();
+                }
                 return this;
             },
 

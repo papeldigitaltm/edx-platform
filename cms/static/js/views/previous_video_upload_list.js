@@ -10,6 +10,7 @@ define(
                 this.template = this.loadTemplate('previous-video-upload-list');
                 this.encodingsDownloadUrl = options.encodingsDownloadUrl;
                 this.videoImageUploadEnabled = options.videoImageSettings.video_image_upload_enabled;
+                this.isVideoTranscriptEnabled = options.isVideoTranscriptEnabled;
                 this.itemViews = this.collection.map(function(model) {
                     return new PreviousVideoUploadView({
                         videoImageUploadURL: options.videoImageUploadURL,
@@ -18,7 +19,8 @@ define(
                         videoImageSettings: options.videoImageSettings,
                         model: model,
                         transcriptAvailableLanguages: options.transcriptAvailableLanguages,
-                        videoSupportedFileFormats: options.videoSupportedFileFormats
+                        videoSupportedFileFormats: options.videoSupportedFileFormats,
+                        isVideoTranscriptEnabled: options.isVideoTranscriptEnabled
                     });
                 });
             },
@@ -28,7 +30,8 @@ define(
                     $tabBody;
                 $el.html(this.template({
                     encodingsDownloadUrl: this.encodingsDownloadUrl,
-                    videoImageUploadEnabled: this.videoImageUploadEnabled
+                    videoImageUploadEnabled: this.videoImageUploadEnabled,
+                    isVideoTranscriptEnabled: this.isVideoTranscriptEnabled
                 }));
                 $tabBody = $el.find('.js-table-body');
                 _.each(this.itemViews, function(view) {

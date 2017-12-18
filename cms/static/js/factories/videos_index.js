@@ -54,7 +54,8 @@ define([
                                 encodingsDownloadUrl: encodingsDownloadUrl,
                                 videoImageSettings: videoImageSettings,
                                 transcriptAvailableLanguages: transcriptAvailableLanguages,
-                                videoSupportedFileFormats: videoSupportedFileFormats
+                                videoSupportedFileFormats: videoSupportedFileFormats,
+                                isVideoTranscriptEnabled: isVideoTranscriptEnabled
                             });
                         $contentWrapper.find('.wrapper-assets').replaceWith(updatedView.render().$el);
                     });
@@ -68,7 +69,8 @@ define([
                 encodingsDownloadUrl: encodingsDownloadUrl,
                 videoImageSettings: videoImageSettings,
                 transcriptAvailableLanguages: transcriptAvailableLanguages,
-                videoSupportedFileFormats: videoSupportedFileFormats
+                videoSupportedFileFormats: videoSupportedFileFormats,
+                isVideoTranscriptEnabled: isVideoTranscriptEnabled
             });
         $contentWrapper.append(activeView.render().$el);
         $contentWrapper.append(previousView.render().$el);

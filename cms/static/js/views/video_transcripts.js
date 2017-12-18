@@ -28,12 +28,10 @@ define(
             */
             sortByValue: function(itemObject) {
                 var sortedArray = [];
-
                 _.each(itemObject, function(value, key) {
                     // Push each JSON Object entry in array by [value, key]
                     sortedArray.push([value, key]);
                 });
-
                 return sortedArray.sort();
             },
 
@@ -43,12 +41,10 @@ define(
             getTranscriptClientTitle: function() {
                 // Use a fixed length tranascript name.
                 var clientTitle = this.clientVideoID.substring(0, 20);
-
                 // Remove video file extension for transcript title.
                 _.each(this.videoSupportedFileFormats, function(videoFormat) {
                     clientTitle.replace(videoFormat, '');
                 });
-
                 return clientTitle;
             },
 
@@ -93,8 +89,6 @@ define(
                         transcripts: this.transcripts,
                         transcriptAvailableLanguages: this.sortByValue(this.transcriptAvailableLanguages),
                         edxVideoID: this.edxVideoID,
-                        // Slice last 4 letters so that video filetype is not attached
-                        // eg. eg. Harry-Potter.mp4 would give us eg. Harry-Potter
                         transcriptClientTitle: this.getTranscriptClientTitle(),
                         transcriptDownloadFileFormat: TRANSCRIPT_DOWNLOAD_FILE_FORMAT
                     })

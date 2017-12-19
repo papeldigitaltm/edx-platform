@@ -128,30 +128,42 @@ class EntitlementViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         """
         This method is an override and is called by the DELETE method
-        """
-        save_model = False
-        if instance.expired_at is None:
-            instance.expired_at = timezone.now()
-            log.info('Set expired_at to [%s] for course entitlement [%s]', instance.expired_at, instance.uuid)
-            save_model = True
 
-        if instance.enrollment_course_run is not None:
-            CourseEnrollment.unenroll(
-                user=instance.user,
-                course_id=instance.enrollment_course_run.course_id,
-                skip_refund=True
-            )
-            enrollment = instance.enrollment_course_run
-            instance.enrollment_course_run = None
-            save_model = True
-            log.info(
-                'Unenrolled user [%s] from course run [%s] as part of revocation of course entitlement [%s]',
-                instance.user.username,
-                enrollment.course_id,
-                instance.uuid
-            )
-        if save_model:
-            instance.save()
+        This method will revoke and
+        """
+        log.info(
+            'Entitlement Revoke requested for Course Entitlement[%s]',
+            str(instance.uuid)
+        )
+        process_revoke_and_unenroll_entitlement(instance)
+
+
+@transaction.atomic
+def process_revoke_and_unenroll_entitlement(course_entitlement):
+    save_model = False
+
+    if course_entitlement.expired_at is None:
+        course_entitlement.expired_at = timezone.now()
+        log.info('Set expired_at to [%s] for course entitlement [%s]', course_entitlement.expired_at, course_entitlement.uuid)
+        save_model = True
+
+    if course_entitlement.enrollment_course_run is not None:
+        CourseEnrollment.unenroll(
+            user=course_entitlement.user,
+            course_id=course_entitlement.enrollment_course_run.course_id,
+            skip_refund=True
+        )
+        enrollment = course_entitlement.enrollment_course_run
+        course_entitlement.enrollment_course_run = None
+        save_model = True
+        log.info(
+            'Unenrolled user [%s] from course run [%s] as part of revocation of course entitlement [%s]',
+            course_entitlement.user.username,
+            enrollment.course_id,
+            course_entitlement.uuid
+        )
+    if save_model:
+        course_entitlement.save()
 
 
 class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
@@ -321,29 +333,13 @@ class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
                 'Entitlement Refund requested for Course Entitlement[%s]',
                 str(entitlement.uuid)
             )
-            refund_status = refund_entitlement(course_entitlement=entitlement)
+            refund_successful = refund_entitlement(course_entitlement=entitlement)
 
-            if refund_status:
-                with transaction.atomic():
-                    entitlement.expired_at_datetime = timezone.now()
-                    entitlement.save()
-
-                    log.info(
-                        'Set expired_at to [%s] for course entitlement [%s]',
-                        entitlement.expired_at,
-                        entitlement.uuid
-                    )
-
-                    # Revoke and refund the entitlement
-                    if entitlement.enrollment_course_run is not None:
-                        self._unenroll_entitlement(
-                            entitlement=entitlement,
-                            course_run_key=entitlement.enrollment_course_run.course_id,
-                            user=request.user
-                        )
+            if refund_successful:
+                process_revoke_and_unenroll_entitlement(course_entitlement=entitlement)
             else:
                 # This state is achieved in most cases by a failure in the ecommerce service to process the refund.
-                log.info(
+                log.warn(
                     'Entitlement Refund failed for Course Entitlement [%s], alert User',
                     str(entitlement.uuid)
                 )

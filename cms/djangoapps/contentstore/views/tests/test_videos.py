@@ -32,8 +32,7 @@ from contentstore.views.videos import (
     validate_video_image,
     VIDEO_IMAGE_UPLOAD_ENABLED,
     WAFFLE_SWITCHES,
-    TranscriptProvider,
-    get_all_transcript_languages
+    TranscriptProvider
 )
 from contentstore.views.videos import KEY_EXPIRATION_IN_SECONDS, StatusDisplayStrings, convert_video_status
 from xmodule.modulestore.tests.factories import CourseFactory
@@ -309,7 +308,6 @@ class VideosHandlerTestCase(VideoUploadTestMixin, CourseTestCase):
         self.assertEqual(response.status_code, 200)
         response_videos = json.loads(response.content)['videos']
 
-        all_languages = get_all_transcript_languages(is_video_transcript_enabled)
         for response_video in response_videos:
             if response_video['edx_video_id'] == self.previous_uploads[0]['edx_video_id']:
                 self.assertDictEqual(response_video['transcripts'], expected_transcripts)

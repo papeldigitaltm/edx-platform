@@ -179,9 +179,10 @@ class EntitlementViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         """
-        This method is an override and is called by the DELETE method
+        This method is an override and is called by the destroy method, which is called the a DELETE operation occurs
 
-        This method will revoke and
+        This method will revoke the User's entitlement and unenroll the user if they are enrolled
+        in a Course Run
         """
         log.info(
             'Entitlement Revoke requested for Course Entitlement[%s]',

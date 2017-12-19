@@ -258,7 +258,10 @@ class CreateSubsectionGrade(NonZeroSubsectionGrade):
         If the learner's score was just deleted, they will have
         no attempts but the grade should still be persisted.
 
-
+        If the learner's enrollment track has changed, and the
+        subsection *only* contains track-specific problems that the
+        user has attempted, should force a re-grade for that section.
+        See EDUCATOR-1280.
         """
         return (
             self.all_total.first_attempted is not None or

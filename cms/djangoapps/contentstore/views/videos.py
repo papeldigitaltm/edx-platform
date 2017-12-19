@@ -528,6 +528,7 @@ def _get_videos(course):
     Retrieves the list of videos from VAL corresponding to this course.
     """
     is_video_transcript_enabled = VideoTranscriptEnabledFlag.feature_enabled(course.id)
+    all_languages = get_all_transcript_languages(is_video_transcript_enabled)
     videos = list(get_videos_for_course(unicode(course.id), VideoSortField.created, SortDirection.desc))
 
     # convert VAL's status to studio's Video Upload feature status.
@@ -537,7 +538,7 @@ def _get_videos(course):
         if is_video_transcript_enabled:
             transcripts = {}
             for lang_code in get_available_transcript_languages([video['edx_video_id']]):
-                transcripts.update({lang_code: get_all_transcript_languages(is_video_transcript_enabled)[lang_code]})
+                transcripts.update({lang_code: all_languages[lang_code]})
 
             video['transcripts'] = transcripts
 

@@ -123,6 +123,14 @@ def login_and_registration_form(request, initial_mode="login"):
         } for message in messages.get_messages(request) if 'account-activation' in message.tags
     ]
 
+    # add user details from running pipeline
+    pipeline_user_details = {}
+    running_pipeline = pipeline.get(request)
+    if running_pipeline:
+        pipeline_user_details = running_pipeline['kwargs']['details']
+
+    enterprise_customer = enterprise_customer_for_request(request)
+
     # Otherwise, render the combined login/registration page
     context = {
         'data': {
@@ -145,7 +153,9 @@ def login_and_registration_form(request, initial_mode="login"):
             'registration_form_desc': json.loads(form_descriptions['registration']),
             'password_reset_form_desc': json.loads(form_descriptions['password_reset']),
             'account_creation_allowed': configuration_helpers.get_value(
-                'ALLOW_PUBLIC_ACCOUNT_CREATION', settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True))
+                'ALLOW_PUBLIC_ACCOUNT_CREATION', settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True)),
+            'pipeline_user_details': pipeline_user_details,
+            'enterprise_name': enterprise_customer.get('name') if enterprise_customer else None
         },
         'login_redirect_url': redirect_to,  # This gets added to the query string of the "Sign In" button in header
         'responsive': True,
@@ -399,7 +409,7 @@ def _get_form_descriptions(request):
 
     return {
         'password_reset': get_password_reset_form().to_json(),
-        'login': get_login_session_form().to_json(),
+        'login': get_login_session_form(request).to_json(),
         'registration': RegistrationFormFactory().get_registration_form(request).to_json()
     }
 

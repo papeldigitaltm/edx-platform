@@ -174,11 +174,10 @@ def refund_entitlement(course_entitlement):
             refund_ids,
         )
 
-        _process_refund(
+        return _process_refund(
             refund_ids=refund_ids,
             api_client=api_client,
-            course_product=course_entitlement,
-            is_entitlement=True
+            course_product=course_entitlement
         )
     else:
         log.info('No refund opened for user [%s], course entitlement [%s]', enrollee.id, entitlement_uuid)
@@ -226,7 +225,7 @@ def refund_seat(course_enrollment):
     return refund_ids
 
 
-def _process_refund(refund_ids, api_client, course_product, is_entitlement=False):
+def _process_refund(refund_ids, api_client, course_product):
     """
     Helper method to process a refund for a given course_product
 
@@ -263,7 +262,7 @@ def _process_refund(refund_ids, api_client, course_product, is_entitlement=False
             # result in opening a refund request.
             msg = 'Skipping refund support notification for non-verified mode for user [%s], course [%s], mode: [%s]'
             course_identifier = course_product.course_id
-            if is_entitlement:
+            if course_product.uuid:
                 course_identifier = str(course_product.uuid)
                 msg = ('Skipping refund support notification for non-verified mode for user [%s], '
                        'course entitlement [%s], mode: [%s]')

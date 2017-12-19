@@ -76,7 +76,7 @@ class CourseGradeFactory(object):
             user,
             course_data,
             force_update_subsections=force_update_subsections,
-            persist_after_track_change=enrollment_track_changed
+            enrollment_track_changed=enrollment_track_changed
         )
 
     def iter(
@@ -163,7 +163,7 @@ class CourseGradeFactory(object):
         )
 
     @staticmethod
-    def _update(user, course_data, force_update_subsections=False, persist_after_track_change=False):
+    def _update(user, course_data, force_update_subsections=False, enrollment_track_changed=False):
         """
         Computes, saves, and returns a CourseGrade object for the
         given user and course.
@@ -179,11 +179,11 @@ class CourseGradeFactory(object):
             user,
             course_data,
             force_update_subsections=force_update_subsections,
-            persist_after_track_change=persist_after_track_change
+            enrollment_track_changed=enrollment_track_changed
         )
         course_grade = course_grade.update()
 
-        should_persist = should_persist and (course_grade.attempted or persist_after_track_change)
+        should_persist = should_persist and course_grade.attempted
         if should_persist:
             course_grade._subsection_grade_factory.bulk_create_unsaved()
             PersistentCourseGrade.update_or_create(

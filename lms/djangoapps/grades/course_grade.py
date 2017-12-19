@@ -213,8 +213,9 @@ class CourseGradeBase(object):
         """
         Returns a list of subsection grades for the given chapter.
         """
+        enrollment_track_changed = False if self.enrollment_track_changed is None else self.enrollment_track_changed
         return [
-            self._get_subsection_grade(course_structure[subsection_key])
+            self._get_subsection_grade(course_structure[subsection_key], enrollment_track_changed)
             for subsection_key in _uniqueify_and_keep_order(course_structure.get_children(chapter_key))
         ]
 
@@ -276,9 +277,9 @@ class CourseGrade(CourseGradeBase):
                     return True
         return False
 
-    def _get_subsection_grade(self, subsection):
+    def _get_subsection_grade(self, subsection, enrollment_track_changed):
         if self.force_update_subsections:
-            return self._subsection_grade_factory.update(subsection, self.persist_after_track_change)
+            return self._subsection_grade_factory.update(subsection, enrollment_track_changed)
         else:
             # Pass read_only here so the subsection grades can be persisted in bulk at the end.
             return self._subsection_grade_factory.create(subsection, read_only=True)

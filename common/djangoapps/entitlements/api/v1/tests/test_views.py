@@ -596,7 +596,7 @@ class EntitlementEnrollmentViewSetTest(ModuleStoreTestCase):
             revoke_url,
             content_type='application/json',
         )
-        assert response.status_code == 409
+        assert response.status_code == 500
 
         course_entitlement.refresh_from_db()
         assert CourseEnrollment.is_enrolled(self.user, self.course.id)

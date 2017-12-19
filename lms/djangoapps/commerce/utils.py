@@ -181,7 +181,7 @@ def refund_entitlement(course_entitlement):
         )
     else:
         log.info('No refund opened for user [%s], course entitlement [%s]', enrollee.id, entitlement_uuid)
-        return True
+        return False
 
 
 def refund_seat(course_enrollment):
@@ -227,7 +227,8 @@ def refund_seat(course_enrollment):
 
 def _process_refund(refund_ids, api_client, course_product):
     """
-    Helper method to process a refund for a given course_product
+    Helper method to process a refund for a given course_product. This method assumes that the User has already
+    been unenrolled.
 
     Returns:
         bool: True if the refund process was successful, False if there are any Errors that are not handled
@@ -239,9 +240,9 @@ def _process_refund(refund_ids, api_client, course_product):
 
         for refund_id in refund_ids:
             try:
-                # NOTE: Approve payment only because the user has already been unenrolled. Additionally, this
-                # ensures we don't tie up an additional web worker when the E-Commerce Service tries to unenroll
-                # the learner
+                # NOTE: The following assumes that the user has already been unenrolled.
+                # We are then able to approve payment. Additionally, this ensures we don't tie up an
+                # additional web worker when the E-Commerce Service tries to unenroll the learner.
                 api_client.refunds(refund_id).process.put({'action': 'approve_payment_only'})
                 log.info('Refund [%d] successfully approved.', refund_id)
             except:  # pylint: disable=bare-except
@@ -275,7 +276,7 @@ def _process_refund(refund_ids, api_client, course_product):
             return False
         else:
             try:
-                _send_refund_notification(course_product, refunds_requiring_approval)
+                return _send_refund_notification(course_product, refunds_requiring_approval)
             except:  # pylint: disable=bare-except
                 # Unable to send notification to Support, do not break as this method is used by Signals
                 log.warning('Could not send support notification for refund.', exc_info=True)
@@ -284,7 +285,13 @@ def _process_refund(refund_ids, api_client, course_product):
 
 
 def _send_refund_notification(course_product, refund_ids):
-    """ Notify the support team of the refund request. """
+    """
+    Notify the support team of the refund request.
+
+    Returns:
+        bool: True if we are able to send the notification.  In this case that means we were able to create
+              a ZenDesk ticket
+    """
 
     tags = ['auto_refund']
 
@@ -292,11 +299,13 @@ def _send_refund_notification(course_product, refund_ids):
         # this is not presently supported with the external service.
         raise NotImplementedError("Unable to send refund processing emails to support teams.")
 
+    # Build the information for the ZenDesk ticket
     student = course_product.user
     subject = _("[Refund] User-Requested Refund")
     body = _generate_refund_notification_body(student, refund_ids)
     requester_name = student.profile.name or student.username
-    create_zendesk_ticket(requester_name, student.email, subject, body, tags)
+
+    return create_zendesk_ticket(requester_name, student.email, subject, body, tags)
 
 
 def _generate_refund_notification_body(student, refund_ids):  # pylint: disable=invalid-name
@@ -317,10 +326,15 @@ def _generate_refund_notification_body(student, refund_ids):  # pylint: disable=
 
 
 def create_zendesk_ticket(requester_name, requester_email, subject, body, tags=None):
-    """ Create a Zendesk ticket via API. """
+    """
+    Create a Zendesk ticket via API.
+
+    Returns:
+        bool: False if we are unable to create the ticket for any reason
+    """
     if not (settings.ZENDESK_URL and settings.ZENDESK_USER and settings.ZENDESK_API_KEY):
-        log.debug('Zendesk is not configured. Cannot create a ticket.')
-        return
+        log.error('Zendesk is not configured. Cannot create a ticket.')
+        return False
 
     # Copy the tags to avoid modifying the original list.
     tags = list(tags or [])
@@ -356,8 +370,9 @@ def create_zendesk_ticket(requester_name, requester_email, subject, body, tags=N
         # Check for HTTP codes other than 201 (Created)
         if response.status_code != 201:
             log.error('Failed to create ticket. Status: [%d], Body: [%s]', response.status_code, response.content)
+            return False
         else:
             log.debug('Successfully created ticket.')
     except Exception:  # pylint: disable=broad-except
         log.exception('Failed to create ticket.')
-        return
+        return False

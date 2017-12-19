@@ -65,11 +65,6 @@ class CourseGradeFactory(object):
 
         At least one of course, collected_block_structure, course_structure,
         or course_key should be provided.
-
-        If the learner's enrollment track has changed, and the
-        subsection *only* contains track-specific problems that the
-        user has attempted, should force a re-grade for that section.
-        See EDUCATOR-1280.
         """
         course_data = CourseData(user, course, collected_block_structure, course_structure, course_key)
         return self._update(

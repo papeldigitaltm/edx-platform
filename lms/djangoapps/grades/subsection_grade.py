@@ -260,8 +260,8 @@ class CreateSubsectionGrade(NonZeroSubsectionGrade):
 
         If the learner's enrollment track has changed, and the
         subsection *only* contains track-specific problems that the
-        user has attempted, should force a re-grade for that section.
-        See EDUCATOR-1280.
+        user has attempted, a re-grade will not occur. Should force
+        a re-grade in this case. See EDUCATOR-1280.
         """
         return (
             self.all_total.first_attempted is not None or

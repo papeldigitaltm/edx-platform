@@ -62,7 +62,7 @@ def _track_notification_sent(message, context):
     properties = {
         'site': context['site'].domain,
         'app_label': 'discussion',
-        'name': 'responsenotification', # This is 'Campaign' in GA
+        'name': 'responsenotification',  # This is 'Campaign' in GA
         'language': message.language,
         'uuid': unicode(message.uuid),
         'send_uuid': unicode(message.send_uuid),

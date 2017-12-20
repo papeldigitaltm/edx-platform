@@ -75,7 +75,7 @@
                     this.passwordResetSupportUrl = options.password_reset_support_link;
                     this.createAccountOption = options.account_creation_allowed;
                     this.hideAuthWarnings = options.hide_auth_warnings || false;
-                    this.pipelineUserDetails = options.pipeline_user_details;
+                    this.pipelineUserDetails = options.third_party_auth.pipeline_user_details;
                     this.enterpriseName = options.enterprise_name || '';
 
                 // The login view listens for 'sync' events from the reset model

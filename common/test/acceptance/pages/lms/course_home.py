@@ -11,6 +11,8 @@ from .course_page import CoursePage
 from .courseware import CoursewarePage
 from .staff_view import StaffPreviewPage
 
+import logging
+log = logging.getLogger(__name__)
 
 class CourseHomePage(CoursePage):
     """
@@ -166,6 +168,7 @@ class CourseOutlinePage(PageObject):
             go_to_section("Week 1", "Lesson 1")
         """
         section_index = self._section_title_to_index(section_title)
+        log.info(">>> section_index: '{0}'".format(section_index))
         if section_index is None:
             raise ValueError("Could not find section '{0}'".format(section_title))
 

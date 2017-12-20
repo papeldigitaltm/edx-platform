@@ -42,6 +42,9 @@ from common.test.acceptance.tests.helpers import (
     select_option_by_text,
 )
 
+import logging
+log = logging.getLogger(__name__)
+
 
 @attr(shard=8)
 class ForgotPasswordPageTest(UniqueCourseTest):
@@ -865,6 +868,8 @@ class VisibleToStaffOnlyTest(UniqueCourseTest):
 
         self.course_home_page.visit()
         self.assertEqual(3, len(self.course_home_page.outline.sections['Test Section']))
+
+        log.info(">>> Test Sections: %s", self.course_home_page.outline.sections['Test Section'])
 
         self.course_home_page.outline.go_to_section("Test Section", "Subsection With Locked Unit")
         self.courseware_page.wait_for_page()

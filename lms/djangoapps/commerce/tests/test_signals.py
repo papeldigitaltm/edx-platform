@@ -268,13 +268,14 @@ class TestRefundSignal(TestCase):
                                    body='I want a refund!', tags=None):
         """ Call the create_zendesk_ticket function. """
         tags = tags or ['auto_refund']
-        create_zendesk_ticket(name, email, subject, body, tags)
+        return create_zendesk_ticket(name, email, subject, body, tags)
 
     @override_settings(ZENDESK_URL=ZENDESK_URL, ZENDESK_USER=None, ZENDESK_API_KEY=None)
     def test_create_zendesk_ticket_no_settings(self):
         """ Verify the Zendesk API is not called if the settings are not all set. """
         with mock.patch('requests.post') as mock_post:
-            self.call_create_zendesk_ticket()
+            success = self.call_create_zendesk_ticket()
+            self.assertFalse(success)
             self.assertFalse(mock_post.called)
 
     def test_create_zendesk_ticket_request_error(self):
@@ -284,7 +285,8 @@ class TestRefundSignal(TestCase):
         We simply need to ensure the exception is not raised beyond the function.
         """
         with mock.patch('requests.post', side_effect=Timeout) as mock_post:
-            self.call_create_zendesk_ticket()
+            success = self.call_create_zendesk_ticket()
+            self.assertFalse(success)
             self.assertTrue(mock_post.called)
 
     @httpretty.activate
@@ -297,7 +299,8 @@ class TestRefundSignal(TestCase):
         subject = 'Test Ticket'
         body = 'I want a refund!'
         tags = ['auto_refund']
-        self.call_create_zendesk_ticket(name, email, subject, body, tags)
+        ticket_created = self.call_create_zendesk_ticket(name, email, subject, body, tags)
+        self.assertTrue(ticket_created)
         last_request = httpretty.last_request()
 
         # Verify the headers

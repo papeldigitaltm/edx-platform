@@ -376,3 +376,4 @@ def create_zendesk_ticket(requester_name, requester_email, subject, body, tags=N
     except Exception:  # pylint: disable=broad-except
         log.exception('Failed to create ticket.')
         return False
+    return True

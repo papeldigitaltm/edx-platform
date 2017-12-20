@@ -92,7 +92,8 @@ class SubsectionGradeFactory(object):
             grade_model = calculated_grade.update_or_create_model(
                 self.student,
                 score_deleted,
-                enrollment_track_changed)
+                enrollment_track_changed
+            )
             self._update_saved_subsection_grade(subsection.location, grade_model)
 
         return calculated_grade

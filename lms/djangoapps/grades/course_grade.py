@@ -19,12 +19,18 @@ class CourseGradeBase(object):
     """
     Base class for Course Grades.
     """
-    def __init__(self, user, course_data, percent=0.0, letter_grade=None, passed=False, force_update_subsections=False):
+    def __init__(self, user, course_data,
+                 percent=0.0, letter_grade=None,
+                 passed=False, force_update_subsections=False,
+                 enrollment_track_changed=False
+                 ):
         self.user = user
         self.course_data = course_data
 
         self.percent = percent
         self.passed = passed
+
+        self.enrollment_track_changed = enrollment_track_changed
 
         # Convert empty strings to None when reading from the table
         self.letter_grade = letter_grade or None
@@ -213,7 +219,7 @@ class CourseGradeBase(object):
         """
         Returns a list of subsection grades for the given chapter.
         """
-        enrollment_track_changed = False if self.enrollment_track_changed is None else self.enrollment_track_changed
+        enrollment_track_changed = bool(self.enrollment_track_changed)
         return [
             self._get_subsection_grade(course_structure[subsection_key], enrollment_track_changed)
             for subsection_key in _uniqueify_and_keep_order(course_structure.get_children(chapter_key))

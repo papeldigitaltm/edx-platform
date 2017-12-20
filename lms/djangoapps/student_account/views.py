@@ -241,6 +241,8 @@ def update_context_for_enterprise(request, context):
     context = context.copy()
 
     sidebar_context = enterprise_sidebar_context(request)
+    enterprise_customer = enterprise_customer_for_request(request)
+    context['data']['enterprise_name'] = enterprise_customer.get('name') if enterprise_customer else None
 
     if sidebar_context:
         context['data']['registration_form_desc']['fields'] = enterprise_fields_only(
@@ -333,6 +335,7 @@ def _third_party_auth_context(request, redirect_to, tpa_hint=None):
         "errorMessage": None,
         "registerFormSubmitButtonText": _("Create Account"),
         "syncLearnerProfileData": False,
+        "pipeline_user_details": None
     }
 
     if third_party_auth.is_enabled():
@@ -360,6 +363,7 @@ def _third_party_auth_context(request, redirect_to, tpa_hint=None):
         running_pipeline = pipeline.get(request)
         if running_pipeline is not None:
             current_provider = third_party_auth.provider.Registry.get_from_pipeline(running_pipeline)
+            context['pipeline_user_details'] = running_pipeline['kwargs']['details']
 
             if current_provider is not None:
                 context["currentProvider"] = current_provider.name
@@ -425,7 +429,7 @@ def _get_form_descriptions(request):
 
     return {
         'password_reset': get_password_reset_form().to_json(),
-        'login': get_login_session_form().to_json(),
+        'login': get_login_session_form(request).to_json(),
         'registration': RegistrationFormFactory().get_registration_form(request).to_json()
     }
 

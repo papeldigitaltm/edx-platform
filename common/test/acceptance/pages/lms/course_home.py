@@ -4,6 +4,7 @@ LMS Course Home page object
 
 from collections import OrderedDict
 
+import logging
 from bok_choy.page_object import PageObject
 
 from .bookmarks import BookmarksPage
@@ -11,7 +12,6 @@ from .course_page import CoursePage
 from .courseware import CoursewarePage
 from .staff_view import StaffPreviewPage
 
-import logging
 log = logging.getLogger(__name__)
 
 class CourseHomePage(CoursePage):

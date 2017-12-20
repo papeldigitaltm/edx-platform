@@ -46,18 +46,19 @@ class CourseOutlineFragmentView(EdxFragmentView):
         """
         Returns dict of subsections with prerequisites and whether the prerequisite has been completed or not
         """
-        course_content_milestones = {}
 
-        all_course_prereqs = get_course_content_milestones(course_id=course_key)
+        all_course_prereqs = get_course_content_milestones(course_key)
 
-        for milestone in all_course_prereqs:
-            course_content_milestones[milestone['content_id']] = {'completed_prereqs': True}
-            
-        unfulfilled_prereqs = get_course_content_milestones(
-            course_id=course_key,
-            user_id=request.user.id)
+        content_ids_of_unfulfilled_prereqs = [
+            milestone['content_id']
+            for milestone in get_course_content_milestones(course_key, user_id=request.user.id)
+        ]
 
-        for milestone in unfulfilled_prereqs:
-            course_content_milestones[milestone['content_id']]['completed_prereqs'] = False
+        course_content_milestones = {
+            milestone['content_id']: {
+                'completed_prereqs': milestone['content_id'] not in content_ids_of_unfulfilled_prereqs
+            }
+            for milestone in all_course_prereqs
+        }
 
         return course_content_milestones

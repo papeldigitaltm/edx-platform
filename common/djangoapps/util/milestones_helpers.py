@@ -350,7 +350,7 @@ def get_course_content_milestones(course_id, content_id=None, relationship='requ
     Uses the request cache to store all of a user's
     milestones
 
-    Returns all content blocks in a course if content_id is None, otherwise it just returns that 
+    Returns all content blocks in a course if content_id is None, otherwise it just returns that
     specific content block.
     """
     if not settings.FEATURES.get('MILESTONES_APP'):

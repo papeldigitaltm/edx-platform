@@ -41,23 +41,21 @@ from openedx.core.djangolib.markup import HTML, Text
                                                     <span class="menu-icon icon fa fa-unlock"
                                                         aria-hidden="true">
                                                     </span>
+                                                    <span class="subsection-title-name">
+                                                        ${ subsection['display_name'] }
+                                                    </span>
+                                                    <span class="sr">&nbsp;${_("Unlocked")}</span>
                                                 % else:
                                                     <span class="menu-icon icon fa fa-lock" 
                                                     aria-hidden="true">
                                                     </span>
-                                                % endif
-                                            % endif
-                                            <span class="subsection-title-name">
-                                                ${ subsection['display_name'] }
-                                            </span>
-                                            % if subsection['id'] in milestones: 
-                                                % if milestones[subsection['id']]['completed_prereqs']:
-                                                    <span class="sr">&nbsp;${_("Unlocked")}</span>
-                                                % else:
+                                                    <span class="subsection-title-name">
+                                                        ${ subsection['display_name'] }
+                                                    </span>
                                                     <span class="details">
                                                         ${ _("(Prerequisite required)") }
                                                     </span>
-                                                % endif 
+                                                % endif
                                             % endif
                                         <div class="details">
 

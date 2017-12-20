@@ -180,7 +180,7 @@ def refund_entitlement(course_entitlement):
             course_product=course_entitlement
         )
     else:
-        log.info('No refund opened for user [%s], course entitlement [%s]', enrollee.id, entitlement_uuid)
+        log.warn('No refund opened for user [%s], course entitlement [%s]', enrollee.id, entitlement_uuid)
         return False
 
 
@@ -337,11 +337,9 @@ def create_zendesk_ticket(requester_name, requester_email, subject, body, tags=N
         return False
 
     # Copy the tags to avoid modifying the original list.
-    tags = list(tags or [])
-    tags.append('LMS')
-
-    # Remove duplicates
-    tags = list(set(tags))
+    tags = set(tags or [])
+    tags.add('LMS')
+    tags = list(tags)
 
     data = {
         'ticket': {

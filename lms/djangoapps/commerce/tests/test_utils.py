@@ -1,5 +1,7 @@
 """Tests of commerce utilities."""
 from urllib import urlencode
+import unittest
+import httpretty
 
 import ddt
 from django.conf import settings
@@ -10,11 +12,19 @@ from mock import patch
 from waffle.testutils import override_switch
 
 from openedx.core.lib.log_utils import audit_log
-from student.tests.factories import UserFactory
+from xmodule.modulestore.tests.factories import CourseFactory
+from student.tests.factories import (TEST_PASSWORD, CourseEnrollmentFactory, UserFactory)
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 
-from ..models import CommerceConfiguration
-from ..utils import EcommerceService
 
+from lms.djangoapps.commerce.models import CommerceConfiguration
+from lms.djangoapps.commerce.utils import EcommerceService, refund_entitlement
+
+# Entitlements is not in CMS' INSTALLED_APPS so these imports will error during test collection
+if settings.ROOT_URLCONF == 'lms.urls':
+    from entitlements.tests.factories import CourseEntitlementFactory
+    from entitlements.models import CourseEntitlement
+    from entitlements.api.v1.serializers import CourseEntitlementSerializer
 
 def update_commerce_config(enabled=False, checkout_page='/test_basket/'):
     """ Enable / Disable CommerceConfiguration model """
@@ -105,3 +115,53 @@ class EcommerceServiceTests(TestCase):
             skus=urlencode({'sku': skus}, doseq=True),
         )
         self.assertEqual(url, expected_url)
+
+
+@unittest.skipUnless(settings.ROOT_URLCONF == 'lms.urls', 'Test only valid in lms')
+class RefundUtilMethodTests(ModuleStoreTestCase):
+    def setUp(self):
+        super(RefundUtilMethodTests, self).setUp()
+        self.user = UserFactory()
+        UserFactory(username=settings.ECOMMERCE_SERVICE_WORKER_USERNAME, is_staff=True)
+
+        self.client.login(username=self.user.username, password=TEST_PASSWORD)
+        self.course = CourseFactory.create(org='edX', number='DemoX', display_name='Demo_Course')
+        self.course2 = CourseFactory.create(org='edX', number='DemoX2', display_name='Demo_Course 2')
+
+        # self.return_values = [
+        #     {'key': str(self.course.id)},
+        #     {'key': str(self.course2.id)}
+        # ]
+
+    @patch('lms.djangoapps.commerce.utils.is_commerce_service_configured', return_value=False)
+    def test_ecommerce_service_not_configured(self, mock_commerce_configured):
+        course_entitlement = CourseEntitlementFactory()
+        refund_success = refund_entitlement(course_entitlement)
+        assert mock_commerce_configured.is_called
+        assert not refund_success
+
+    @httpretty.activate
+    def test_no_ecommerce_connection_and_failure(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            settings.ECOMMERCE_API_URL + 'refunds/',
+            status=404,
+            body='{}',
+            content_type='application_json'
+        )
+        course_entitlement = CourseEntitlementFactory()
+        refund_success = refund_entitlement(course_entitlement)
+        assert not refund_success
+
+    @httpretty.activate
+    def test_ecommerce_returns_refund_ids(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            settings.ECOMMERCE_API_URL + 'refunds/',
+            status=201,
+            body='[1,2]',
+            content_type='application_json'
+        )
+        course_entitlement = CourseEntitlementFactory()
+        refund_success = refund_entitlement(course_entitlement)
+        assert refund_success

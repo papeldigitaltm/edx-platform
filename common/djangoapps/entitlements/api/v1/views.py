@@ -23,6 +23,7 @@ from student.models import CourseEnrollmentException, AlreadyEnrolledError
 log = logging.getLogger(__name__)
 
 
+@transaction.atomic
 def _unenroll_entitlement(course_entitlement, course_run_key):
     """
     Internal method to handle the details of Unenrolling a User in a Course Run.
@@ -69,7 +70,7 @@ def _process_revoke_and_unenroll_entitlement(course_entitlement, is_refund=False
             # This state is achieved in most cases by a failure in the ecommerce service to process the refund.
             log.warn(
                 'Entitlement Refund failed for Course Entitlement [%s], alert User',
-                str(course_entitlement.uuid)
+                course_entitlement.uuid
             )
             # Force Transaction reset with an Integrity error exception, this will revert all previous transactions
             raise IntegrityError
@@ -179,14 +180,14 @@ class EntitlementViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         """
-        This method is an override and is called by the destroy method, which is called the a DELETE operation occurs
+        This method is an override and is called by the destroy method, which is called when a DELETE operation occurs
 
         This method will revoke the User's entitlement and unenroll the user if they are enrolled
         in a Course Run
         """
         log.info(
             'Entitlement Revoke requested for Course Entitlement[%s]',
-            str(instance.uuid)
+            instance.uuid
         )
         _process_revoke_and_unenroll_entitlement(instance)
 
@@ -213,6 +214,7 @@ class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
                 return True
         return False
 
+    @transaction.atomic
     def _enroll_entitlement(self, entitlement, course_run_key, user):
         """
         Internal method to handle the details of enrolling a User in a Course Run.
@@ -348,7 +350,7 @@ class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
             # Revoke the Course Entitlement and issue Refund
             log.info(
                 'Entitlement Refund requested for Course Entitlement[%s]',
-                str(entitlement.uuid)
+                entitlement.uuid
             )
 
             try:
@@ -371,7 +373,7 @@ class EntitlementEnrollmentViewSet(viewsets.GenericViewSet):
         else:
             log.info(
                 'Entitlement Refund failed for Course Entitlement [%s]. Entitlement is not refundable',
-                str(entitlement.uuid)
+                entitlement.uuid
             )
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,

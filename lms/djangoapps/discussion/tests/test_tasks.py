@@ -214,7 +214,7 @@ class TaskTestCase(ModuleStoreTestCase):
             self.assertEqual(expected_recipient, actual_message.recipient)
             self.assertEqual(self.course.language, actual_message.language)
             self._assert_rendered_email(actual_message)
-            with patch('analytics.track') as mock_analytics_track:
+            with mock.patch('analytics.track') as mock_analytics_track:
                 self.assertEqual(mock_analytics_track.call_count, 1)
         else:
             self.assertFalse(self.mock_ace_send.called)

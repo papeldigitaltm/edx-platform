@@ -39,13 +39,12 @@ define(
             Returns transcript title.
             */
             getTranscriptClientTitle: function() {
-                // Use a fixed length tranascript name.
-                var clientTitle = this.clientVideoID.substring(0, 20);
+                var clientTitle = this.clientVideoID;
                 // Remove video file extension for transcript title.
                 _.each(this.videoSupportedFileFormats, function(videoFormat) {
                     clientTitle.replace(videoFormat, '');
                 });
-                return clientTitle;
+                return clientTitle.substring(0, 20);
             },
 
             /*

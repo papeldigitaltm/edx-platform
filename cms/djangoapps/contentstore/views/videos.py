@@ -580,6 +580,7 @@ def _get_index_videos(course):
         _get_values(video) for video in _get_videos(course)
     ]
 
+
 def get_all_transcript_languages(is_video_transcript_enabled=False):
     """
     Returns all possible languages for transcript.
@@ -592,7 +593,7 @@ def get_all_transcript_languages(is_video_transcript_enabled=False):
         # Get third party transcription languages.
         third_party_transcription_languages = transcription_plans[TranscriptProvider.THREE_PLAY_MEDIA]['languages']
         third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['MECHANICAL']['languages'])
-        third_party_transcription_languages = dict(third_party_transcription_languages , **cielo_fidelity['PREMIUM']['languages'])
+        third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['PREMIUM']['languages'])
         third_party_transcription_languages = dict(third_party_transcription_languages, **cielo_fidelity['PROFESSIONAL']['languages'])
 
     # Get all settings languages dict.
@@ -602,6 +603,7 @@ def get_all_transcript_languages(is_video_transcript_enabled=False):
 
     # Return combined settings and 3rd party transcript languages.
     return dict(all_languages, **third_party_transcription_languages)
+
 
 def videos_index_html(course):
     """

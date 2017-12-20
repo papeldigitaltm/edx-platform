@@ -62,7 +62,7 @@ define(
                     StringUtils.interpolate(
                         gettext('{toggleShowTranscriptText} transcripts ({totalTranscripts})'),
                         {
-                            toggleShowTranscriptText: $transcriptsWrapperEl.hasClass('hidden') ? gettext('Show') : gettext('Hide'),
+                            toggleShowTranscriptText: $transcriptsWrapperEl.hasClass('hidden') ? gettext('Show') : gettext('Hide'), // eslint-disable-line max-len
                             totalTranscripts: _.size(this.transcripts)
                         }
                     )

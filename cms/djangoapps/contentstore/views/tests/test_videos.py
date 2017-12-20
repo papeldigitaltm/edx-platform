@@ -21,7 +21,7 @@ from edxval.api import (
     get_video_info,
     get_course_video_image_url,
     create_or_update_video_transcript
-    )
+)
 from mock import Mock, patch
 
 from contentstore.models import VideoUploadConfig
@@ -287,8 +287,8 @@ class VideosHandlerTestCase(VideoUploadTestMixin, CourseTestCase):
                 }
             ],
             {
-                 'en': 'English',
-                 'es': 'Spanish'
+                'en': 'English',
+                'es': 'Spanish'
             }
         )
     )
@@ -650,12 +650,6 @@ class VideosHandlerTestCase(VideoUploadTestMixin, CourseTestCase):
         # Verify that course video button is present in the response if videos transcript feature is enabled.
         self.assertEqual(
             '<button class="button course-video-settings-button">' in response.content,
-            is_video_transcript_enabled
-        )
-
-        # Verify that transcripts column is present in the response if videos transcript feature is enabled.
-        self.assertEqual(
-            '<div class="video-head-col video-col transcripts-col">Transcripts</div>' in response.content,
             is_video_transcript_enabled
         )
 

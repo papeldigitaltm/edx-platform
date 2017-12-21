@@ -37,6 +37,8 @@ def authenticate_lti_user(request, lti_user_id, lti_consumer):
 
     if not (request.user.is_authenticated() and
             request.user == lti_user.edx_user):
+        print request.user
+        print lti_user.edx_user
         # The user is not authenticated, or is logged in as somebody else.
         # Switch them to the LTI user
         switch_user(request, lti_user, lti_consumer)

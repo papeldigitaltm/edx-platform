@@ -51,7 +51,6 @@ def build_launch_request(authenticated=True):
     """
     request = RequestFactory().post('/')
     request.user = UserFactory.create()
-    request.user.is_authenticated = MagicMock(return_value=authenticated)
     request.session = {}
     request.POST.update(LTI_DEFAULT_PARAMS)
     return request

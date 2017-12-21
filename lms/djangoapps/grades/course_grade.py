@@ -21,16 +21,13 @@ class CourseGradeBase(object):
     """
     def __init__(self, user, course_data,
                  percent=0.0, letter_grade=None,
-                 passed=False, force_update_subsections=False,
-                 enrollment_track_changed=False
+                 passed=False, force_update_subsections=False
                  ):
         self.user = user
         self.course_data = course_data
 
         self.percent = percent
         self.passed = passed
-
-        self.enrollment_track_changed = enrollment_track_changed
 
         # Convert empty strings to None when reading from the table
         self.letter_grade = letter_grade or None
@@ -219,14 +216,13 @@ class CourseGradeBase(object):
         """
         Returns a list of subsection grades for the given chapter.
         """
-        enrollment_track_changed = bool(self.enrollment_track_changed)
         return [
-            self._get_subsection_grade(course_structure[subsection_key], enrollment_track_changed)
+            self._get_subsection_grade(course_structure[subsection_key], self.force_update_subsections)
             for subsection_key in _uniqueify_and_keep_order(course_structure.get_children(chapter_key))
         ]
 
     @abstractmethod
-    def _get_subsection_grade(self, subsection):
+    def _get_subsection_grade(self, subsection, force_update_subsections):
         """
         Abstract method to be implemented by subclasses for returning
         the grade of the given subsection.
@@ -239,7 +235,7 @@ class ZeroCourseGrade(CourseGradeBase):
     Course Grade class for Zero-value grades when no problems were
     attempted in the course.
     """
-    def _get_subsection_grade(self, subsection):
+    def _get_subsection_grade(self, subsection, force_update_subsection):
         return ZeroSubsectionGrade(subsection, self.course_data)
 
 
@@ -283,9 +279,9 @@ class CourseGrade(CourseGradeBase):
                     return True
         return False
 
-    def _get_subsection_grade(self, subsection, enrollment_track_changed):
+    def _get_subsection_grade(self, subsection, force_update_subsections):
         if self.force_update_subsections:
-            return self._subsection_grade_factory.update(subsection, enrollment_track_changed)
+            return self._subsection_grade_factory.update(subsection, force_update_subsections)
         else:
             # Pass read_only here so the subsection grades can be persisted in bulk at the end.
             return self._subsection_grade_factory.create(subsection, read_only=True)

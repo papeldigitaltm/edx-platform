@@ -128,6 +128,7 @@ def get_login_session_form(request):
 
     return form_desc
 
+
 def _apply_third_party_auth_overrides(request, form_desc):
     """Modify the login form if the user has authenticated with a third-party provider.
     If a user has successfully authenticated with a third-party provider,

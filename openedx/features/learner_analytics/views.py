@@ -70,8 +70,13 @@ class LearnerAnalyticsView(View):
             'grading_policy': grading_policy,
             'assignment_grades': self.get_grade_data(request.user, course_key, grading_policy['GRADE_CUTOFFS']),
             'assignment_schedule': self.get_schedule(request, course_key),
-            'discussion_info': self.get_discussion_data(request, course_key)
+            'discussion_info': self.get_discussion_data(request, course_key),
+            'weekly_active_users': self.get_weekly_course_activities(course_key),
+            'week_streak': self.consecutive_weeks_of_course_activity_for_user(
+                request.user.username, course_key
+            )
         }
+
         return render_to_response('learner_analytics/dashboard.html', context)
 
     def get_grade_data(self, user, course_key, grade_cutoffs):

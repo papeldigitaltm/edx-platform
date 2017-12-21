@@ -57,7 +57,6 @@ class CourseGradeFactory(object):
             course_structure=None,
             course_key=None,
             force_update_subsections=False,
-            enrollment_track_changed=False
     ):
         """
         Computes, updates, and returns the CourseGrade for the given
@@ -70,8 +69,7 @@ class CourseGradeFactory(object):
         return self._update(
             user,
             course_data,
-            force_update_subsections=force_update_subsections,
-            enrollment_track_changed=enrollment_track_changed
+            force_update_subsections=force_update_subsections
         )
 
     def iter(
@@ -158,7 +156,7 @@ class CourseGradeFactory(object):
         )
 
     @staticmethod
-    def _update(user, course_data, force_update_subsections=False, enrollment_track_changed=False):
+    def _update(user, course_data, force_update_subsections=False):
         """
         Computes, saves, and returns a CourseGrade object for the
         given user and course.
@@ -173,8 +171,7 @@ class CourseGradeFactory(object):
         course_grade = CourseGrade(
             user,
             course_data,
-            force_update_subsections=force_update_subsections,
-            enrollment_track_changed=enrollment_track_changed
+            force_update_subsections=force_update_subsections
         )
         course_grade = course_grade.update()
 

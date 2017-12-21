@@ -251,6 +251,5 @@ def recalculate_course_and_subsection_grades(sender, user, course_key, **kwargs)
         CourseGradeFactory().update(
             user=user,
             course_key=course_key,
-            force_update_subsections=True,
-            enrollment_track_changed=True
+            force_update_subsections=True
         )

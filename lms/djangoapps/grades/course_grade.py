@@ -19,10 +19,7 @@ class CourseGradeBase(object):
     """
     Base class for Course Grades.
     """
-    def __init__(self, user, course_data,
-                 percent=0.0, letter_grade=None,
-                 passed=False, force_update_subsections=False
-                 ):
+    def __init__(self, user, course_data, percent=0.0, letter_grade=None, passed=False, force_update_subsections=False):
         self.user = user
         self.course_data = course_data
 
@@ -235,7 +232,7 @@ class ZeroCourseGrade(CourseGradeBase):
     Course Grade class for Zero-value grades when no problems were
     attempted in the course.
     """
-    def _get_subsection_grade(self, subsection, force_update_subsection):
+    def _get_subsection_grade(self, subsection, force_update_subsections):
         return ZeroSubsectionGrade(subsection, self.course_data)
 
 

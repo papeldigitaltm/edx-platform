@@ -230,11 +230,11 @@ class CreateSubsectionGrade(NonZeroSubsectionGrade):
 
         super(CreateSubsectionGrade, self).__init__(subsection, all_total, graded_total)
 
-    def update_or_create_model(self, student, score_deleted=False, enrollment_track_changed=False):
+    def update_or_create_model(self, student, score_deleted=False, force_update_subsections=False):
         """
         Saves or updates the subsection grade in a persisted model.
         """
-        if self._should_persist_per_attempted(score_deleted, enrollment_track_changed):
+        if self._should_persist_per_attempted(score_deleted, force_update_subsections):
             return PersistentSubsectionGrade.update_or_create_grade(**self._persisted_model_params(student))
 
     @classmethod
@@ -250,7 +250,7 @@ class CreateSubsectionGrade(NonZeroSubsectionGrade):
         ]
         return PersistentSubsectionGrade.bulk_create_grades(params, student.id, course_key)
 
-    def _should_persist_per_attempted(self, score_deleted=False, enrollment_track_changed=False):
+    def _should_persist_per_attempted(self, score_deleted=False, force_update_subsections=False):
         """
         Returns whether the SubsectionGrade's model should be
         persisted based on settings and attempted status.
@@ -266,7 +266,7 @@ class CreateSubsectionGrade(NonZeroSubsectionGrade):
         return (
             self.all_total.first_attempted is not None or
             score_deleted or
-            enrollment_track_changed
+            force_update_subsections
         )
 
     def _persisted_model_params(self, student):

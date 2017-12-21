@@ -393,15 +393,13 @@ class StudentAccountLoginAndRegistrationTest(ThirdPartyAuthTestMixin, UrlResetMi
         ]
 
         if expected_enterprise_customer_mock_attrs:
-            expected_ec = mock.MagicMock(
-                branding_configuration=mock.MagicMock(
-                    logo=mock.MagicMock(
-                        url=expected_enterprise_customer_mock_attrs['logo']
-                    ),
-                    welcome_message=expected_enterprise_customer_mock_attrs['welcome_msg']
-                )
-            )
-            expected_ec.name = expected_enterprise_customer_mock_attrs['name']
+            expected_ec = {
+                'name': expected_enterprise_customer_mock_attrs['name'],
+                'branding_configuration': {
+                    'logo': 'https://host.com/logo.jpg',
+                    'welcome_message': expected_enterprise_customer_mock_attrs['welcome_msg']
+                }
+            }
         else:
             expected_ec = None
 
@@ -641,6 +639,7 @@ class StudentAccountLoginAndRegistrationTest(ThirdPartyAuthTestMixin, UrlResetMi
             "errorMessage": None,
             "registerFormSubmitButtonText": "Create Account",
             "syncLearnerProfileData": False,
+            "pipeline_user_details": None
         }
         if expected_ec is not None:
             # If we set an EnterpriseCustomer, third-party auth providers ought to be hidden.

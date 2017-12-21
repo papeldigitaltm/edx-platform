@@ -363,7 +363,9 @@ def _third_party_auth_context(request, redirect_to, tpa_hint=None):
         running_pipeline = pipeline.get(request)
         if running_pipeline is not None:
             current_provider = third_party_auth.provider.Registry.get_from_pipeline(running_pipeline)
-            context['pipeline_user_details'] = running_pipeline['kwargs']['details']
+            user_details = running_pipeline['kwargs']['details']
+            if user_details:
+                context['pipeline_user_details'] = user_details
 
             if current_provider is not None:
                 context["currentProvider"] = current_provider.name

@@ -8,11 +8,9 @@ import logging
 from django.contrib.auth.models import AnonymousUser
 from django.dispatch import receiver
 
-from entitlements.signals import REFUND_ENTITLEMENT
 from openedx.core.djangoapps.commerce.utils import is_commerce_service_configured
-from request_cache.middleware import RequestCache
 from student.signals import REFUND_ORDER
-from .utils import refund_entitlement, refund_seat
+from .utils import refund_seat
 
 log = logging.getLogger(__name__)
 
@@ -47,39 +45,3 @@ def handle_refund_order(sender, course_enrollment=None, **kwargs):
                 course_enrollment.user.id,
                 course_enrollment.course_id,
             )
-
-
-# pylint: disable=unused-argument
-@receiver(REFUND_ENTITLEMENT)
-def handle_refund_entitlement(sender, course_entitlement=None, **kwargs):
-    if not is_commerce_service_configured():
-        return
-
-    if course_entitlement and course_entitlement.is_entitlement_refundable():
-        try:
-            request_user = get_request_user()
-            if request_user and course_entitlement.user == request_user:
-                refund_entitlement(course_entitlement)
-        except Exception as exc:  # pylint: disable=broad-except
-            # don't assume the signal was fired with `send_robust`.
-            # avoid blowing up other signal handlers by gracefully
-            # trapping the Exception and logging an error.
-            log.exception(
-                "Unexpected exception while attempting to initiate refund for user [%s], "
-                "course entitlement [%s] message: [%s]",
-                course_entitlement.user.id,
-                course_entitlement.uuid,
-                str(exc)
-            )
-
-
-def get_request_user():
-    """
-    Helper to get the authenticated user from the current HTTP request (if
-    applicable).
-
-    If the requester of an unenrollment is not the same person as the student
-    being unenrolled, we authenticate to the commerce service as the requester.
-    """
-    request = RequestCache.get_current_request()
-    return getattr(request, 'user', None)

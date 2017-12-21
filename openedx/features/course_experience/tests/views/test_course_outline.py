@@ -21,6 +21,9 @@ from lms.djangoapps.course_api.blocks.transformers.milestones import MilestonesA
 
 from .test_course_home import course_home_url
 
+import logging
+log = logging.getLogger(__name__)
+
 TEST_PASSWORD = 'test'
 GATING_NAMESPACE_QUALIFIER = '.gating'
 
@@ -218,11 +221,16 @@ class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase, Mileston
         response = self.client.get(course_home_url(course))
         self.assertEqual(response.status_code, 200)
 
+
         response_content = pq(response.content)
 
         # check the subsection is present and has the title 'Gated Content'
         gated_subsection_title = self.course_blocks['gated_content'].display_name
+        log.info(">> subsections:\n'{0}'".format(
+            response_content.items('.subsection-title')
+        ))
         gated_subsections = [subsection for subsection in response_content.items('.subsection-title') if gated_subsection_title in subsection.text()]
+        
         self.assertTrue(gated_subsections)
 
         # check that there is only one subtitle with that name

@@ -21,6 +21,9 @@ define(
                     ur: 'Urdu'
                 },
                 videoSupportedFileFormats = ['.mov', '.mp4'],
+                videoTranscriptSettings = {
+                    transcript_download_handler_url: 'abc.com/transcript_download/course_id'
+                },
                 TRANSCRIPT_DOWNLOAD_FILE_FORMAT = 'srt',
                 videoListView;
 
@@ -40,7 +43,8 @@ define(
                     videoImageSettings: {},
                     transcriptAvailableLanguages: transcriptAvailableLanguages,
                     videoSupportedFileFormats: videoSupportedFileFormats,
-                    isVideoTranscriptEnabled: isVideoTranscriptEnabled
+                    isVideoTranscriptEnabled: isVideoTranscriptEnabled,
+                    videoTranscriptSettings: videoTranscriptSettings
                 });
                 videoListView.setElement($('.wrapper-assets'));
                 videoListView.render();

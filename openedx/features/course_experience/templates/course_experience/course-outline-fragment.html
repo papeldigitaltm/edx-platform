@@ -56,6 +56,10 @@ from openedx.core.djangolib.markup import HTML, Text
                                                         ${ _("(Prerequisite required)") }
                                                     </span>
                                                 % endif
+                                            % else:
+                                                <span class="subsection-title-name">
+                                                    ${ subsection['display_name'] }
+                                                </span>
                                             % endif
                                         <div class="details">
 

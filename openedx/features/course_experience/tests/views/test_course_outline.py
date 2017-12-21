@@ -21,8 +21,6 @@ from lms.djangoapps.course_api.blocks.transformers.milestones import MilestonesA
 
 from .test_course_home import course_home_url
 
-import logging
-log = logging.getLogger(__name__)
 
 TEST_PASSWORD = 'test'
 GATING_NAMESPACE_QUALIFIER = '.gating'
@@ -191,16 +189,21 @@ class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase, Mileston
 
         response_content = pq(response.content)
 
-        # check the subsection is present and has the title 'Gated Content (Prerequisite required)'
-        gated_subsection_title = '{} {}'.format(self.course_blocks['gated_content'].display_name, self.PREREQ_REQUIRED)
-        gated_subsections = [subsection for subsection in response_content.items('.subsection-title') if gated_subsection_title in subsection.text()]
-        self.assertTrue(gated_subsections)
+        # check lock icon is present
+        lock_icon = response_content('.fa-lock')
+        self.assertTrue(lock_icon, "lock icon is not present, but should be")
 
-        # check that there is only one subtitle with that name
-        self.assertTrue(len(gated_subsections))
+        subsection = lock_icon.parents('.subsection-title')
 
-        # check the lock icon is there
-        self.assertTrue(gated_subsections[0].children('.fa-lock'))
+        # check that subsection-title-name is the display name
+        gated_subsection_title = self.course_blocks['gated_content'].display_name
+        self.assertIn(gated_subsection_title, subsection.children('.subsection-title-name').html())
+
+        # check that it says prerequisite required
+        self.assertIn(self.PREREQ_REQUIRED, subsection.children('.details').html())
+
+        # check that there is not a screen reader message
+        self.assertFalse(subsection.children('.sr'))
 
     def test_content_unlocked(self):
         """
@@ -221,30 +224,26 @@ class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase, Mileston
         response = self.client.get(course_home_url(course))
         self.assertEqual(response.status_code, 200)
 
-
         response_content = pq(response.content)
 
-        # check the subsection is present and has the title 'Gated Content'
+        # check unlock icon is present
+        unlock_icon = response_content('.fa-unlock')
+        self.assertTrue(unlock_icon, "unlock icon is not present, but should be")
+
+        subsection = unlock_icon.parents('.subsection-title')
+
+        # check that subsection-title-name is the display name of gated content section
         gated_subsection_title = self.course_blocks['gated_content'].display_name
-        log.info(">> subsections:\n'{0}'".format(
-            response_content.items('.subsection-title')
-        ))
-        gated_subsections = [subsection for subsection in response_content.items('.subsection-title') if gated_subsection_title in subsection.text()]
-        
-        self.assertTrue(gated_subsections)
+        self.assertIn(gated_subsection_title, subsection.children('.subsection-title-name').html())
 
-        # check that there is only one subtitle with that name
-        self.assertTrue(len(gated_subsections))
+        # check that it doesn't say prerequisite required
+        self.assertNotIn(self.PREREQ_REQUIRED, subsection.children('.subsection-title-name').html())
 
-        # check that the subtitle DOES NOT say '(Prerequisite required)'
-        self.assertFalse(self.PREREQ_REQUIRED in gated_subsections[0].text())
+        # check that there is a screen reader message
+        self.assertTrue(subsection.children('.sr'))
 
-        # check the unlock icon is there
-        self.assertTrue(gated_subsections[0].children('.fa-unlock'))
-
-        # check that screen reader text is there, should say "Unlocked"
-        self.assertTrue(gated_subsections[0].children('.sr'))
-        self.assertTrue(self.UNLOCKED in gated_subsections[0].children('.sr').text())
+        # check that the screen reader message is correct
+        self.assertIn(self.UNLOCKED, subsection.children('.sr').html())
 
 
 class TestCourseOutlineResumeCourse(SharedModuleStoreTestCase):
